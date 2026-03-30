@@ -16,34 +16,55 @@ import {
 } from "../db";
 
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+  if (ctx.user.role !== "admin")
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+    });
   return next({ ctx });
 });
 
 const lecturerOrAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin" && ctx.user.role !== "lecturer")
-    throw new TRPCError({ code: "FORBIDDEN", message: "Lecturer or admin access required" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Lecturer or admin access required",
+    });
   return next({ ctx });
 });
 
 export const coursesRouter = router({
   list: protectedProcedure
     .input(
-      z.object({
-        semesterId: z.number().optional(),
-        department: z.string().optional(),
-        level: z.string().optional(),
-        search: z.string().optional(),
-        isActive: z.boolean().optional(),
-      }).optional()
+      z
+        .object({
+          semesterId: z.number().optional(),
+          department: z.string().optional(),
+          level: z.string().optional(),
+          search: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+        .optional()
     )
-    .query(({ input }) => getAllCourses(input)),
+    .query(async ({ input }) => {
+      const coursesList = await getAllCourses(input);
+      // Get assignments for all courses
+      const coursesWithAssignments = await Promise.all(
+        coursesList.map(async course => {
+          const assignment = await getCourseAssignment(course.id);
+          const enrollmentCount = await getCourseEnrollmentCount(course.id);
+          return { ...course, assignment, enrollmentCount };
+        })
+      );
+      return coursesWithAssignments;
+    }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.number() }))
     .query(async ({ input }) => {
       const course = await getCourseById(input.id);
-      if (!course) throw new TRPCError({ code: "NOT_FOUND", message: "Course not found" });
+      if (!course)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Course not found" });
       const enrollmentCount = await getCourseEnrollmentCount(input.id);
       const assignment = await getCourseAssignment(input.id);
       return { ...course, enrollmentCount, assignment };

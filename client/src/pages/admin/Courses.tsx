@@ -336,12 +336,15 @@ export default function AdminCourses() {
                     <th className="text-left py-2 font-medium hidden md:table-cell">
                       Department
                     </th>
+                    <th className="text-left py-2 font-medium hidden lg:table-cell">
+                      Lecturer
+                    </th>
                     <th className="text-center py-2 font-medium">Credits</th>
                     <th className="text-center py-2 font-medium hidden lg:table-cell">
                       Level
                     </th>
                     <th className="text-center py-2 font-medium hidden lg:table-cell">
-                      Capacity
+                      Students
                     </th>
                     <th className="text-center py-2 font-medium">Status</th>
                     <th className="text-center py-2 font-medium">Actions</th>
@@ -362,12 +365,21 @@ export default function AdminCourses() {
                       <td className="py-2.5 text-muted-foreground hidden md:table-cell">
                         {course.department ?? "—"}
                       </td>
+                      <td className="py-2.5 text-muted-foreground hidden lg:table-cell">
+                        {course.assignment?.lecturerId ? (
+                          <span className="text-primary font-medium">
+                            Assigned
+                          </span>
+                        ) : (
+                          <span className="text-orange-500">Unassigned</span>
+                        )}
+                      </td>
                       <td className="py-2.5 text-center">{course.credits}</td>
                       <td className="py-2.5 text-center hidden lg:table-cell">
                         {course.level}
                       </td>
                       <td className="py-2.5 text-center hidden lg:table-cell">
-                        {course.capacity}
+                        {course.enrollmentCount ?? 0}
                       </td>
                       <td className="py-2.5 text-center">
                         <span

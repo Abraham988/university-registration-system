@@ -61,6 +61,7 @@ const lecturerNav: NavItem[] = [
 const adminNav: NavItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Programs", href: "/admin/programs", icon: School },
   { label: "Courses", href: "/admin/courses", icon: BookOpen },
   { label: "Semesters", href: "/admin/semesters", icon: Calendar },
   { label: "Enrollments", href: "/admin/enrollments", icon: UserCheck },
@@ -90,16 +91,22 @@ interface UniversityLayoutProps {
   title?: string;
 }
 
-export default function UniversityLayout({ children, title }: UniversityLayoutProps) {
+export default function UniversityLayout({
+  children,
+  title,
+}: UniversityLayoutProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = getRoleNav(user?.role);
 
-  const { data: unreadCount = 0 } = trpc.notifications.unreadCount.useQuery(undefined, {
-    refetchInterval: 30000,
-  });
+  const { data: unreadCount = 0 } = trpc.notifications.unreadCount.useQuery(
+    undefined,
+    {
+      refetchInterval: 30000,
+    }
+  );
   const { data: notifications = [] } = trpc.notifications.list.useQuery();
   const markRead = trpc.notifications.markRead.useMutation();
   const markAllRead = trpc.notifications.markAllRead.useMutation({
@@ -123,8 +130,12 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
           <GraduationCap className="h-5 w-5 text-sidebar-primary-foreground" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-sidebar-foreground leading-tight truncate">UniPortal</p>
-          <p className="text-xs text-sidebar-foreground/60 truncate">University System</p>
+          <p className="text-sm font-bold text-sidebar-foreground leading-tight truncate">
+            UniPortal
+          </p>
+          <p className="text-xs text-sidebar-foreground/60 truncate">
+            University System
+          </p>
         </div>
       </div>
 
@@ -135,8 +146,15 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
             {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-sidebar-foreground truncate">{user?.name ?? "User"}</p>
-            <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-medium", getRoleColor(user?.role))}>
+            <p className="text-xs font-medium text-sidebar-foreground truncate">
+              {user?.name ?? "User"}
+            </p>
+            <span
+              className={cn(
+                "text-[10px] px-1.5 py-0.5 rounded font-medium",
+                getRoleColor(user?.role)
+              )}
+            >
               {getRoleLabel(user?.role)}
             </span>
           </div>
@@ -146,9 +164,10 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
       {/* Navigation */}
       <ScrollArea className="flex-1 py-2">
         <nav className="px-2 space-y-0.5">
-          {navItems.map((item) => {
+          {navItems.map(item => {
             const Icon = item.icon;
-            const isActive = location === item.href || location.startsWith(item.href + "/");
+            const isActive =
+              location === item.href || location.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
@@ -192,7 +211,10 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div
+            className="fixed inset-0 bg-black/50"
+            onClick={() => setSidebarOpen(false)}
+          />
           <aside className="relative w-64 bg-sidebar flex flex-col z-50">
             <button
               onClick={() => setSidebarOpen(false)}
@@ -216,7 +238,11 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
             >
               <Menu className="h-5 w-5" />
             </button>
-            {title && <h1 className="text-base font-semibold text-foreground hidden sm:block">{title}</h1>}
+            {title && (
+              <h1 className="text-base font-semibold text-foreground hidden sm:block">
+                {title}
+              </h1>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -247,12 +273,17 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
                 <DropdownMenuSeparator />
                 <ScrollArea className="max-h-72">
                   {notifications.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">No notifications</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No notifications
+                    </p>
                   ) : (
-                    notifications.slice(0, 10).map((n) => (
+                    notifications.slice(0, 10).map(n => (
                       <DropdownMenuItem
                         key={n.id}
-                        className={cn("flex flex-col items-start gap-1 py-2.5 cursor-pointer", !n.isRead && "bg-accent/50")}
+                        className={cn(
+                          "flex flex-col items-start gap-1 py-2.5 cursor-pointer",
+                          !n.isRead && "bg-accent/50"
+                        )}
                         onClick={() => {
                           markRead.mutate({ id: n.id });
                           utils.notifications.unreadCount.invalidate();
@@ -260,10 +291,16 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
                         }}
                       >
                         <div className="flex items-center gap-2 w-full">
-                          {!n.isRead && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
-                          <span className="text-xs font-medium truncate">{n.title}</span>
+                          {!n.isRead && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                          )}
+                          <span className="text-xs font-medium truncate">
+                            {n.title}
+                          </span>
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 pl-3.5">{n.message}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2 pl-3.5">
+                          {n.message}
+                        </p>
                       </DropdownMenuItem>
                     ))
                   )}
@@ -278,18 +315,25 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
                     {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
                   </div>
-                  <span className="hidden sm:block text-sm font-medium max-w-24 truncate">{user?.name}</span>
+                  <span className="hidden sm:block text-sm font-medium max-w-24 truncate">
+                    {user?.name}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>
                   <div>
                     <p className="font-medium">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground font-normal">{user?.email}</p>
+                    <p className="text-xs text-muted-foreground font-normal">
+                      {user?.email}
+                    </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive"
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>
@@ -300,9 +344,7 @@ export default function UniversityLayout({ children, title }: UniversityLayoutPr
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-            {children}
-          </div>
+          <div className="p-4 lg:p-6 max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

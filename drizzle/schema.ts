@@ -52,6 +52,49 @@ export const semesters = sqliteTable("semesters", {
 export type Semester = typeof semesters.$inferSelect;
 export type InsertSemester = typeof semesters.$inferInsert;
 
+// ─── Programs (e.g., BSc Computer Science) ─────────────────────────────────
+export const programs = sqliteTable("programs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  faculty: text("faculty").notNull(), // e.g., Faculty of Science
+  department: text("department").notNull(), // e.g., Computer Science
+  durationYears: integer("durationYears").notNull().default(4),
+  description: text("description"),
+  isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+  createdAt: text("createdAt").default(new Date().toISOString()),
+});
+
+export type Program = typeof programs.$inferSelect;
+export type InsertProgram = typeof programs.$inferInsert;
+
+// ─── Program Courses (courses required for each program/year) ────────────────
+export const programCourses = sqliteTable("program_courses", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  programId: integer("programId").notNull(),
+  courseId: integer("courseId").notNull(),
+  year: integer("year").notNull(), // Year 1, 2, 3, 4
+  semester: integer("semester").notNull(), // Semester 1 or 2
+  isCore: integer("isCore", { mode: "boolean" }).default(true).notNull(), // Core or elective
+  createdAt: text("createdAt").default(new Date().toISOString()),
+});
+
+export type ProgramCourse = typeof programCourses.$inferSelect;
+export type InsertProgramCourse = typeof programCourses.$inferInsert;
+
+// ─── Student Programs (what program a student is enrolled in) ────────────────
+export const studentPrograms = sqliteTable("student_programs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  studentId: integer("studentId").notNull(),
+  programId: integer("programId").notNull(),
+  yearOfStudy: integer("yearOfStudy").notNull().default(1),
+  enrollmentDate: text("enrollmentDate").default(new Date().toISOString()),
+  isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+});
+
+export type StudentProgram = typeof studentPrograms.$inferSelect;
+export type InsertStudentProgram = typeof studentPrograms.$inferInsert;
+
 // ─── Courses ──────────────────────────────────────────────────────────────────
 export const courses = sqliteTable("courses", {
   id: integer("id").primaryKey({ autoIncrement: true }),
