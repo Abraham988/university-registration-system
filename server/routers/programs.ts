@@ -1,6 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
+import {
+  adminProcedure,
+  protectedProcedure,
+  publicProcedure,
+  router,
+} from "../_core/trpc";
 import {
   enrollStudentInProgram,
   getAllPrograms,
@@ -10,8 +15,8 @@ import {
 } from "../db";
 
 export const programsRouter = router({
-  // Public: list all programs
-  list: protectedProcedure.query(() => getAllPrograms()),
+  // Public: list all programs (for registration page)
+  list: publicProcedure.query(() => getAllPrograms()),
 
   // Get single program
   getById: protectedProcedure

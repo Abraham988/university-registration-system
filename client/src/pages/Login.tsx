@@ -36,6 +36,7 @@ export default function LoginPage() {
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: async data => {
+      console.log("Login successful, role:", data.role);
       toast.success(
         data.role === "admin"
           ? "Welcome Admin!"
@@ -45,12 +46,20 @@ export default function LoginPage() {
       );
       await utils.auth.me.invalidate();
       await utils.auth.me.refetch();
-      if (data.role === "admin") window.location.href = "/admin/dashboard";
-      else if (data.role === "lecturer")
-        window.location.href = "/lecturer/dashboard";
-      else window.location.href = "/student/dashboard";
+      await new Promise(r => setTimeout(r, 300));
+      const redirectPath =
+        data.role === "admin"
+          ? "/admin/dashboard"
+          : data.role === "lecturer"
+            ? "/lecturer/dashboard"
+            : "/student/dashboard";
+      console.log("Redirecting to:", redirectPath);
+      setLocation(redirectPath);
     },
-    onError: err => toast.error(err.message),
+    onError: err => {
+      console.error("Login error:", err);
+      toast.error(err.message);
+    },
   });
 
   const enrollProgramMutation = trpc.programs.enroll.useMutation({
