@@ -6,6 +6,7 @@ import { coursesRouter } from "./routers/courses";
 import { enrollmentsRouter } from "./routers/enrollments";
 import { gradesRouter } from "./routers/grades";
 import { notificationsRouter } from "./routers/notifications";
+import { programsRouter } from "./routers/programs";
 import { reportsRouter } from "./routers/reports";
 import { semestersRouter } from "./routers/semesters";
 import { usersRouter } from "./routers/users";
@@ -29,7 +30,7 @@ async function createSessionToken(openId: string, role: string, name: string) {
   const secret = new TextEncoder().encode(
     process.env.JWT_SECRET || "local-secret-1234"
   );
-  const token = await new SignJWT({ openId, role, name })
+  const token = await new SignJWT({ openId, appId: "local-dev-app", name })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
     .setIssuedAt()
@@ -99,6 +100,7 @@ export const appRouter = router({
   grades: gradesRouter,
   users: usersRouter,
   notifications: notificationsRouter,
+  programs: programsRouter,
   reports: reportsRouter,
 });
 

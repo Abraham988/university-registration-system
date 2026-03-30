@@ -11,6 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -21,7 +28,10 @@ export default function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState<"student" | "lecturer" | "admin">("student");
+  const [selectedProgram, setSelectedProgram] = useState<string>("");
+  const [studentId, setStudentId] = useState("");
 
+  const { data: programs = [] } = trpc.programs.list.useQuery();
   const utils = trpc.useUtils();
 
   const loginMutation = trpc.auth.login.useMutation({
@@ -35,7 +45,6 @@ export default function LoginPage() {
       );
       await utils.auth.me.invalidate();
       await utils.auth.me.refetch();
-      // Use window.location for reliable redirect
       if (data.role === "admin") window.location.href = "/admin/dashboard";
       else if (data.role === "lecturer")
         window.location.href = "/lecturer/dashboard";
@@ -44,10 +53,25 @@ export default function LoginPage() {
     onError: err => toast.error(err.message),
   });
 
+  const enrollProgramMutation = trpc.programs.enroll.useMutation({
+    onSuccess: () => {
+      toast.success("Enrolled in program! Redirecting to dashboard...");
+      window.location.href = "/student/dashboard";
+    },
+    onError: err => toast.error(err.message),
+  });
+
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: data => {
+    onSuccess: async (data, variables) => {
       toast.success("Account created! Please log in.");
-      setIsRegistering(false);
+      if (variables.role === "student" && selectedProgram) {
+        enrollProgramMutation.mutate({
+          programId: parseInt(selectedProgram),
+          yearOfStudy: 1,
+        });
+      } else {
+        setIsRegistering(false);
+      }
     },
     onError: err => toast.error(err.message),
   });
@@ -122,6 +146,38 @@ export default function LoginPage() {
                       ))}
                     </div>
                   </div>
+                  {role === "student" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="studentId">Student ID</Label>
+                        <Input
+                          id="studentId"
+                          placeholder="e.g. SCIT/2024/001"
+                          value={studentId}
+                          onChange={e => setStudentId(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Select Program</Label>
+                        <Select
+                          value={selectedProgram}
+                          onValueChange={setSelectedProgram}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose your program" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {programs.map(p => (
+                              <SelectItem key={p.id} value={String(p.id)}>
+                                {p.code} - {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
               <div className="space-y-2">

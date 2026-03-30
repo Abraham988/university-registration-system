@@ -30,6 +30,7 @@ import LecturerProfile from "./pages/lecturer/Profile";
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
+import AdminPrograms from "./pages/admin/Programs";
 import AdminCourses from "./pages/admin/Courses";
 import AdminSemesters from "./pages/admin/Semesters";
 import AdminEnrollments from "./pages/admin/Enrollments";
@@ -96,6 +97,7 @@ function RoleRouter() {
       {/* Admin Routes */}
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/programs" component={AdminPrograms} />
       <Route path="/admin/courses" component={AdminCourses} />
       <Route path="/admin/semesters" component={AdminSemesters} />
       <Route path="/admin/enrollments" component={AdminEnrollments} />

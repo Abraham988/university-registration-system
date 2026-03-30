@@ -11,16 +11,25 @@ import {
   InsertEnrollment,
   InsertGrade,
   InsertNotification,
+  InsertProgram,
+  InsertProgramCourse,
   InsertSemester,
+  InsertStudentProgram,
   InsertUser,
   Notification,
+  Program,
+  ProgramCourse,
   Semester,
+  StudentProgram,
   courseAssignments,
   courses,
   enrollments,
   grades,
   notifications,
+  programs,
+  programCourses,
   semesters,
+  studentPrograms,
   users,
 } from "../drizzle/schema";
 
@@ -656,4 +665,110 @@ export async function getSystemStats() {
     courses: Number(courseCount?.count ?? 0),
     enrollments: Number(enrollmentCount?.count ?? 0),
   };
+}
+
+// ─── Program Helpers ─────────────────────────────────────────────────────────
+
+export async function getAllPrograms() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(programs)
+    .where(eq(programs.isActive, true))
+    .orderBy(programs.name);
+}
+
+export async function getProgramById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(programs)
+    .where(eq(programs.id, id))
+    .limit(1);
+  return result[0];
+}
+
+export async function createProgram(data: InsertProgram) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(programs).values(data);
+}
+
+// ─── Program Course Helpers ─────────────────────────────────────────────────
+
+export async function getProgramCourses(programId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      programCourse: programCourses,
+      course: courses,
+    })
+    .from(programCourses)
+    .innerJoin(courses, eq(programCourses.courseId, courses.id))
+    .where(eq(programCourses.programId, programId))
+    .orderBy(programCourses.year, programCourses.semester);
+}
+
+export async function addProgramCourse(data: InsertProgramCourse) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(programCourses).values(data);
+}
+
+// ─── Student Program Helpers ─────────────────────────────────────────────────
+
+export async function enrollStudentInProgram(data: InsertStudentProgram) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(studentPrograms).values(data);
+}
+
+export async function getStudentProgram(studentId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select({
+      studentProgram: studentPrograms,
+      program: programs,
+    })
+    .from(studentPrograms)
+    .innerJoin(programs, eq(studentPrograms.programId, programs.id))
+    .where(
+      and(
+        eq(studentPrograms.studentId, studentId),
+        eq(studentPrograms.isActive, true)
+      )
+    )
+    .limit(1);
+  return result[0];
+}
+
+export async function getStudentCoursesByProgram(
+  studentId: number,
+  semesterId: number
+) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const studentProg = await getStudentProgram(studentId);
+  if (!studentProg) return [];
+
+  return db
+    .select({
+      programCourse: programCourses,
+      course: courses,
+    })
+    .from(programCourses)
+    .innerJoin(courses, eq(programCourses.courseId, courses.id))
+    .where(
+      and(
+        eq(programCourses.programId, studentProg.studentProgram.programId),
+        eq(programCourses.year, studentProg.studentProgram.yearOfStudy),
+        eq(programCourses.semester, 1), // Default to semester 1
+        eq(courses.semesterId, semesterId)
+      )
+    );
 }
